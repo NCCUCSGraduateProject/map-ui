@@ -26,7 +26,9 @@ const state = ref("");
 
 const restaurants = ref([]);
 const querySearch = (queryString, cb) => {
-  const url = "http://localhost:8888/autoComplete/predict?query=" + queryString;
+  const url = `${
+    import.meta.env.VITE_PYAPI_URL
+  }/autoComplete/predict?query=${queryString}`;
   axios.get(url).then((res) => {
     restaurants.value = res.data;
     console.log(restaurants.value);
