@@ -128,7 +128,12 @@
           class-name="custom-div-icon"
         />
         <l-popup>
-          name: {{ marker.name }} <br />
+          <el-link
+            :href="`https://www.google.com/maps/place/?q=place_id:${marker.place_id}`"
+          >
+            name: {{ marker.name }}
+          </el-link>
+          <br />
           rating: {{ marker.rating }} <br />
           user_ratings_total: {{ marker.user_ratings_total }} <br />
           <!-- place_id: {{ marker.place_id }} <br />
@@ -209,8 +214,9 @@ const allData = reactive({
 
 const selectStart = (place) => {
   console.log("change start", place);
-  const url =
-    "http://localhost:8888/autoComplete/detail?place_id=" + place.place_id;
+  const url = `${import.meta.env.VITE_API_URL}/autoComplete/detail?place_id=${
+    place.place_id
+  }`;
   axios.get(url).then((res) => {
     start.lat = res.data.lat;
     start.lng = res.data.lng;
@@ -219,8 +225,9 @@ const selectStart = (place) => {
 };
 const selectEnd = (place) => {
   console.log("change end", place);
-  const url =
-    "http://localhost:8888/autoComplete/detail?place_id=" + place.place_id;
+  const url = `${import.meta.env.VITE_API_URL}/autoComplete/detail?place_id=${
+    place.place_id
+  }`;
   axios.get(url).then((res) => {
     end.lat = res.data.lat;
     end.lng = res.data.lng;
@@ -265,7 +272,7 @@ const fetchData = async () => {
   });
 
   const queryVectors = async () => {
-    const res = await axios.get("http://localhost:5000/word2Vec", {
+    const res = await axios.get(`${import.meta.env.VITE_PYAPI_URL}/word2Vec`, {
       params: {
         inputText: note.value,
       },
@@ -287,7 +294,7 @@ const fetchData = async () => {
   console.log("fetching...", body);
   const startTime = Date.now();
   const res = await axios.post(
-    "http://127.0.0.1:8888/direction/nearbyPoints",
+    `${import.meta.env.VITE_API_URL}/direction/nearbyPoints`,
     body
   );
   console.log((res + "").length);
