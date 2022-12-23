@@ -299,6 +299,7 @@ const fetchData = async () => {
   );
   console.log((res + "").length);
   console.log("fetching time: ", (Date.now() - startTime) / 1000, "s");
+  seg_count.value = 0;
   recommand_count.value = 0;
   ElLoading.service().close();
 
