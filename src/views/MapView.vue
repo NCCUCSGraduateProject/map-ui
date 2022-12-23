@@ -23,13 +23,12 @@
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup } from "@vue-leaflet/vue-leaflet";
 import newTaipeiRestaurants from "./newTaipeiRestaurants.json";
-
 export default {
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    LPopup
+    LPopup,
   },
   props: {
     location: Array, // [lat, lng]
