@@ -200,13 +200,13 @@ const attribution =
 const zoom = ref(14);
 const center = reactive({ lat: 25.033, lng: 121.565 });
 const start = reactive({
-  lat: 24.9885267,
-  lng: 121.5739302,
+  lat: 23.5504055,
+  lng: 119.6134746,
   address: "（尚未選擇地點）",
 });
 const end = reactive({
-  lat: 25.0342531,
-  lng: 121.5270531,
+  lat: 23.6052495,
+  lng: 119.5184518,
   address: "（尚未選擇地點）",
 });
 
