@@ -19,14 +19,17 @@ body {
 .custom-div-icon {
   /* background-color: white; */
   /* border-radius: 50%; */
-  opacity: 0.8;
-  background-color: white;
+  width: 25px !important;
+  height: 30px !important;
+  padding: 5px !important;
+  opacity: 1;
+  background-color: red;
   border-radius: 30%;
 }
 .custom-div-icon:hover {
-  opacity: 1;
+  filter: contrast(2);
 }
 .interactive-polyline:hover {
-  stroke-opacity: 0.5;
+  stroke-opacity: 0.5 !important;
 }
 </style>

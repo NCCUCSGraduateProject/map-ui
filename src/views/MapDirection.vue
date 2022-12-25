@@ -1,19 +1,7 @@
 <template>
   <el-container style="height: 100vh">
-    <div
-      style="
-        position: absolute;
-        z-index: 800;
-        top: 2vh;
-        left: 6vw;
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-      "
-    >
-      <el-input v-model="titleInput" placeholder="請輸入標題" />
-    </div>
     <StartAndEndForm>
+      <el-input v-model="titleInput" placeholder="請輸入標題" />
       <el-switch
         v-model="startEndType"
         active-text="經緯度"
@@ -81,16 +69,18 @@
     >
       <el-button @click="recommandPrev">prev</el-button>
       <el-card
-        v-for="(marker, index) in filtered_marker_list"
+        v-for="(marker, index) in filtedMarkerList"
         style="width: 16vw"
         :key="index"
         :body-style="{ padding: '0px' }"
+        @mouseover="hoverMarker(index)"
       >
         <div style="padding: 14px">
           <el-link
             :href="
               'https://www.google.com/maps/place/?q=place_id:' + marker.place_id
             "
+            target="_blank"
             >{{ marker.name.slice(0, 20) }}
           </el-link>
           <div class="bottom">
@@ -102,11 +92,11 @@
       <el-button @click="recommandNext">next</el-button>
     </el-space>
     <l-map
+      ref="rMap"
       style="width: 100%; height: 100%"
       :zoom="zoom"
       :center="center"
       :maxZoom="18"
-      @update:center="centerUpdated"
     >
       <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
       <l-marker :lat-lng="start" :key="start.address">
@@ -117,10 +107,12 @@
       </l-marker>
 
       <l-marker
-        v-for="(marker, index) in filtered_marker_list"
+        ref="rMarker"
+        v-for="(marker, index) in filtedMarkerList"
         :key="index"
         :lat-lng="marker.geometry.coordinates"
         :title="marker.place_id"
+        @mouseover="hoverMarker(index)"
       >
         <l-icon
           :icon-size="[18, 24]"
@@ -130,14 +122,33 @@
         <l-popup>
           <el-link
             :href="`https://www.google.com/maps/place/?q=place_id:${marker.place_id}`"
+            target="_blank"
           >
-            name: {{ marker.name }}
+            名稱: {{ marker.name }}
           </el-link>
           <br />
-          rating: {{ marker.rating }} <br />
-          user_ratings_total: {{ marker.user_ratings_total }} <br />
-          <!-- place_id: {{ marker.place_id }} <br />
-          icon: {{ marker.icon }} -->
+          星數: {{ marker.rating }} <br />
+          評論數: {{ marker.user_ratings_total }} <br />
+          標籤：
+          <div v-if="marker.tags">
+            <el-tag v-for="tag in marker.tags.slice(0, 5)" :key="tag">{{
+              tag
+            }}</el-tag>
+          </div>
+          <a
+            v-if="marker.tags.length > 5 && !expandTags"
+            @click="expandTags = !expandTags"
+            style="cursor: pointer"
+            >(...)</a
+          >
+          <div v-if="expandTags">
+            <el-tag v-for="tag in marker.tags.slice(5, -1)" :key="tag">
+              {{ tag }}
+            </el-tag>
+            <a @click="expandTags = !expandTags" style="cursor: pointer"
+              >收起</a
+            >
+          </div>
         </l-popup>
       </l-marker>
       <l-circle
@@ -159,7 +170,7 @@
         :weight="4"
         @click="clickPolyline(index)"
       ></l-polyline>
-      <l-polyline :lat-lngs="polyline.latLngs" :weight="10" color="white" />
+      <l-polyline :lat-lngs="polyline.latLngs" :weight="8" color="#c6e2ff" />
     </l-map>
   </el-container>
 </template>
@@ -199,10 +210,12 @@ const end = reactive({
   address: "（尚未選擇地點）",
 });
 
+const expandTags = ref(false);
+
 const startEndType = ref(false);
 const inputType = ref(false);
 const mode = ref("DRIVING");
-const splitRange = ref("2000");
+const splitRange = ref("10000");
 const note = ref("");
 
 const seg_count = ref(0);
@@ -238,11 +251,43 @@ const selectEnd = (place) => {
 const segPrev = () => {
   if (seg_count.value > 0) seg_count.value--;
   recommand_count.value = 0;
+  clickPolyline(seg_count.value);
 };
 
 const segNext = () => {
   if (seg_count.value < allData.nearbys.length - 1) seg_count.value++;
   recommand_count.value = 0;
+  clickPolyline(seg_count.value);
+};
+
+const clickPolyline = (index) => {
+  const start = allData.paths[index][0];
+  const end = allData.paths[index][allData.paths[index].length - 1];
+  updateCenter(start, end);
+
+  seg_count.value = index;
+  recommand_count.value = 0;
+};
+
+const rMap = ref(null);
+
+const updateCenter = (start, end) => {
+  rMap.value.leafletObject.setView(
+    [(start.lat + end.lat) / 2, (start.lng + end.lng) / 2],
+    14
+  );
+};
+
+const updateBounds = (start, end) => {
+  rMap.value.leafletObject.fitBounds(
+    [
+      [start.lat, start.lng],
+      [end.lat, end.lng],
+    ],
+    {
+      padding: [50, 50],
+    }
+  );
 };
 
 const recommandPrev = () => {
@@ -254,14 +299,13 @@ const recommandNext = () => {
   console.log(recommand_count.value);
 };
 
-const clickPolyline = (index) => {
-  seg_count.value = index;
-  recommand_count.value = 0;
+const rMarker = ref(null);
+const hoverMarker = (index) => {
+  rMarker.value[index].leafletObject.openPopup();
 };
 
-const centerUpdated = (center) => {
-  console.log(center);
-  center = { lat: center.lat, lng: center.lng };
+const hoverMarkerOut = (index) => {
+  rMarker.value[index].leafletObject.closePopup();
 };
 
 const fetchData = async () => {
@@ -317,6 +361,11 @@ const getPointsInDirection = async () => {
   console.log("allData", allData);
 
   recommand_count.value = 0;
+
+  const size = allData.paths.length;
+  const start = allData.paths[0][0];
+  const end = allData.paths[size - 1][allData.paths[size - 1].length - 1];
+  updateBounds(start, end);
 };
 
 const polyline = computed(() => {
@@ -333,13 +382,12 @@ const polyline = computed(() => {
 
 const marker_list = computed(() => {
   var _marker_list = [];
+  console.log("marker_list: ", allData.nearbys);
   for (var i = 0; i < allData.nearbys.length; i++) {
     const tmp = allData.nearbys[i].map((item) => {
       return {
+        // reverse lat lng cause of mongodb is lng lat
         place_id: item.place_id,
-        name: item.name,
-        rating: item.rating,
-        user_ratings_total: item.user_ratings_total,
         geometry: {
           coordinates: [
             item.geometry.coordinates[1],
@@ -347,6 +395,11 @@ const marker_list = computed(() => {
           ],
         },
         icon: item.icon,
+        name: item.name,
+        address: item.address,
+        rating: item.rating,
+        user_ratings_total: item.user_ratings_total,
+        tags: item.tags,
         similarity: item.similarity,
       };
     });
@@ -373,11 +426,11 @@ const marker_list = computed(() => {
 
     _marker_list.push(tmp);
   }
-  console.log(_marker_list);
+  console.log("_marker_list: ", _marker_list);
   return _marker_list;
 });
 
-const filtered_marker_list = computed(() => {
+const filtedMarkerList = computed(() => {
   const _tmp = marker_list.value[seg_count.value];
   console.log(_tmp);
   if (_tmp) {
