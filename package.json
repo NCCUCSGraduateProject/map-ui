@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "vite build && rm -rf /usr/share/nginx/html/dist && cp -r dist /usr/share/nginx/html/",
+    "deploy": "vite build && sudo rm -rf /usr/share/nginx/html/dist && sudo cp -r dist /usr/share/nginx/html/",
     "preview": "vite preview --port 4173",
     "test:unit": "vitest --environment jsdom",
     "test:e2e": "start-server-and-test preview http://127.0.0.1:4173/ 'cypress open --e2e'",
