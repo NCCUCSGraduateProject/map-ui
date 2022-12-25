@@ -399,7 +399,7 @@ const marker_list = computed(() => {
         address: item.address,
         rating: item.rating,
         user_ratings_total: item.user_ratings_total,
-        tags: item.tags,
+        tags: item.tags ? item.tags : [],
         similarity: item.similarity,
       };
     });
