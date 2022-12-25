@@ -19,7 +19,7 @@ body {
 .custom-div-icon {
   /* background-color: white; */
   /* border-radius: 50%; */
-  width: 25px !important;
+  width: 30px !important;
   height: 30px !important;
   padding: 5px !important;
   opacity: 1;
